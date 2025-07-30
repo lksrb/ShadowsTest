@@ -1,8 +1,8 @@
-#include "Shadows.h"
+#include "D3D12_Shadows.h"
 
 #include <vector>
 
-internal void Shadows_Initialize(shadows_test* Test, d3d12_context* Context)
+internal void D3D12Shadows_Initialize(d3d12_shadows_test* Test, d3d12_context* Context)
 {
 	auto Device = Context->Device;
 
@@ -13,10 +13,10 @@ internal void Shadows_Initialize(shadows_test* Test, d3d12_context* Context)
 			D3D12_STATIC_SAMPLER_DESC Samplers[1] = {};
 
 			// Sampler
-			Samplers[0].Filter = D3D12_FILTER_MIN_MAG_LINEAR_MIP_POINT;
-			Samplers[0].AddressU = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
-			Samplers[0].AddressV = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
-			Samplers[0].AddressW = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
+			Samplers[0].Filter = D3D12_FILTER_MIN_MAG_POINT_MIP_LINEAR;
+			Samplers[0].AddressU = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
+			Samplers[0].AddressV = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
+			Samplers[0].AddressW = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
 			Samplers[0].MipLODBias = 0;
 			Samplers[0].MaxAnisotropy = 16;
 			Samplers[0].ComparisonFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
@@ -85,9 +85,9 @@ internal void Shadows_Initialize(shadows_test* Test, d3d12_context* Context)
 			PipelineDesc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
 			PipelineDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
 			PipelineDesc.RasterizerState.FrontCounterClockwise = true;
-			PipelineDesc.RasterizerState.DepthBias = 100;
-			PipelineDesc.RasterizerState.DepthBiasClamp = 0;
-			PipelineDesc.RasterizerState.SlopeScaledDepthBias = 2;
+			PipelineDesc.RasterizerState.DepthBias = D3D12_DEFAULT_DEPTH_BIAS;
+			PipelineDesc.RasterizerState.DepthBiasClamp = D3D12_DEFAULT_DEPTH_BIAS_CLAMP;
+			PipelineDesc.RasterizerState.SlopeScaledDepthBias = D3D12_DEFAULT_SLOPE_SCALED_DEPTH_BIAS;
 			PipelineDesc.RasterizerState.DepthClipEnable = true;
 			PipelineDesc.RasterizerState.MultisampleEnable = FALSE;
 			PipelineDesc.RasterizerState.AntialiasedLineEnable = FALSE;
@@ -344,7 +344,7 @@ internal void Shadows_Initialize(shadows_test* Test, d3d12_context* Context)
 	}
 }
 
-internal void PushCube(shadows_test* Shadows, const v3& Translation, const v3& Rotation, const v3& Scale)
+internal void D3D12PushCube(d3d12_shadows_test* Shadows, const v3& Translation, const v3& Rotation, const v3& Scale)
 {
 	Assert(Shadows->Quad.IndexCount < c_MaxQuadIndices, "Shadows->QuadIndexCount < c_MaxQuadIndices");
 
@@ -363,7 +363,7 @@ internal void PushCube(shadows_test* Shadows, const v3& Translation, const v3& R
 	Shadows->Quad.IndexCount += 36;
 }
 
-internal void PushDirectionalLight(shadows_test* Shadows, const v3& Direction, f32 Intensity, const v3& Radiance)
+internal void D3D12PushDirectionalLight(d3d12_shadows_test* Shadows, const v3& Direction, f32 Intensity, const v3& Radiance)
 {
 	directional_light& DirLight = Shadows->LightEnvironment.EmplaceDirectionalLight();
 	DirLight.Direction = Direction;
@@ -371,7 +371,7 @@ internal void PushDirectionalLight(shadows_test* Shadows, const v3& Direction, f
 	DirLight.Radiance = Radiance;
 }
 
-internal void PushPointLight(shadows_test* Shadows, const v3& Position, f32 Radius, f32 FallOff, const v3& Radiance, f32 Intensity)
+internal void D3D12PushPointLight(d3d12_shadows_test* Shadows, const v3& Position, f32 Radius, f32 FallOff, const v3& Radiance, f32 Intensity)
 {
 	point_light& Light = Shadows->LightEnvironment.EmplacePointLight();
 	Light.Position = Position;
@@ -381,7 +381,7 @@ internal void PushPointLight(shadows_test* Shadows, const v3& Position, f32 Radi
 	Light.Intensity = Intensity;
 }
 
-internal void CameraMovement(game_input* Input, v3* CameraPosition, v3* CameraRotation, v3* CameraForward, f32 TimeStep)
+internal void D3D12CameraMovement(game_input* Input, v3* CameraPosition, v3* CameraRotation, v3* CameraForward, f32 TimeStep)
 {
 	// Rotating
 	local_persist bool TPressed = false;
@@ -476,24 +476,25 @@ internal void CameraMovement(game_input* Input, v3* CameraPosition, v3* CameraRo
 	*CameraForward = Forward;
 }
 
-internal void Shadows_Update(shadows_test* Shadows, game_input* Input, d3d12_context* Context, f32 TimeStep, f32 TimeSinceStart)
+internal void D3D12Shadows_Update(d3d12_shadows_test* Test, game_input* Input, d3d12_context* Context, f32 TimeStep, f32 TimeSinceStart)
 {
 	local_persist v3 CameraPosition(0, 6, -10);
 	local_persist v3 CameraRotation(glm::pi<f32>() / 4, 0, 0);
 	local_persist v3 CameraForward;
-	local_persist v3 Eye = v3(-2, 6, -2);
+	local_persist v3 Eye = v3(-2.0f, 3.0f, -1.0f);
+
 	//Eye.x += TimeStep;
 
 	// Camera
 	{
-		CameraMovement(Input, &CameraPosition, &CameraRotation, &CameraForward, TimeStep);
+		D3D12CameraMovement(Input, &CameraPosition, &CameraRotation, &CameraForward, TimeStep);
 
 		m4 LightSpaceMatrix(1.0f);
 
 		// Shadows
 		{
 			f32 Size = 15;
-			m4 LightSpaceProjection = glm::orthoLH_ZO(-Size, Size, -Size, Size, 0.1f, 40.5f);
+			m4 LightSpaceProjection = glm::orthoLH_ZO(-Size, Size, -Size, Size, 1.0f, 17.5f);
 			m4 LightSpaceView = glm::lookAtLH(Eye, v3(0, 0, 0), v3(0, 1, 0));
 
 			LightSpaceMatrix = LightSpaceProjection * LightSpaceView;
@@ -506,17 +507,17 @@ internal void Shadows_Update(shadows_test* Shadows, game_input* Input, d3d12_con
 		Camera.View = glm::inverse(InverseView);
 		Camera.RecalculateProjectionPerspective(2160, 1185);
 
-		Shadows->Quad.RootSignatureBuffer.ViewProjection = Camera.GetViewProjection();
-		Shadows->Quad.RootSignatureBuffer.View = Camera.View;
+		Test->Quad.RootSignatureBuffer.ViewProjection = Camera.GetViewProjection();
+		Test->Quad.RootSignatureBuffer.View = Camera.View;
 
-		Shadows->Quad.RootSignatureBuffer.LightSpaceMatrix = LightSpaceMatrix;
+		Test->Quad.RootSignatureBuffer.LightSpaceMatrix = LightSpaceMatrix;
 
 		// Copy
-		Shadows->ShadowPass.RootSignatureBuffer.LightSpaceMatrix = Shadows->Quad.RootSignatureBuffer.LightSpaceMatrix;
+		Test->ShadowPass.RootSignatureBuffer.LightSpaceMatrix = Test->Quad.RootSignatureBuffer.LightSpaceMatrix;
 	}
 
 	// LIGHT
-	PushDirectionalLight(Shadows, glm::normalize(v3(Eye.x, -Eye.y, Eye.z)), 1.0f, v3(1.0f));
+	D3D12PushDirectionalLight(Test, glm::normalize(v3(Eye.x, -Eye.y, Eye.z)), 1.0f, v3(1.0f));
 
 	//PushPointLight(Shadows, v3(5.0f * bkm::Sin(0 * 5.0f), 1.0f, 0), 10.0, 1.0f, v3(1.0f), 2.0f);
 
@@ -534,23 +535,31 @@ internal void Shadows_Update(shadows_test* Shadows, game_input* Input, d3d12_con
 		Block.Position = CameraPosition + CameraForward * Range;
 	}
 
-	for (size_t i = 0; i < Blocks.size(); i++)
+	// Directional light debug
 	{
-		PushCube(Shadows, Blocks[i].Position, v3(0, 0, 0), v3(1.0f, 1.0f, 1.0f));
+		D3D12PushCube(Test, Eye, v3(0, 0, 0), v3(0.5f, 0.5f, 0.5f));
 	}
 
 	// CUBE
-	PushCube(Shadows, v3(0, 5, 0), v3(0, TimeSinceStart, 0), v3(1.0f, 1.0f, 1.0f));
+	D3D12PushCube(Test, v3(0, 5, 0), v3(0, TimeSinceStart, 0), v3(1.0f, 1.0f, 1.0f));
+	D3D12PushCube(Test, v3(3, 5, 0), v3(0, TimeSinceStart, 0), v3(1.0f, 1.0f, 1.0f));
+
+	for (size_t i = 0; i < Blocks.size(); i++)
+	{
+		D3D12PushCube(Test, Blocks[i].Position, v3(0, 0, 0), v3(1.0f, 1.0f, 1.0f));
+	}
 
 	// GROUND
-	PushCube(Shadows, v3(0, 0, 0), v3(0, 0, 0), v3(20.0f, 1.0f, 20.0f));
+	D3D12PushCube(Test, v3(0, 0, 0), v3(0, 0, 0), v3(20.0f, 1.0f, 20.0f));
+
+
 	//PushCube(Shadows, v3(10, 10, 0), v3(0, 0, glm::pi<f32>() / 2), v3(40.0f, 1.0f, 40.0f));
 }
 
-internal void Shadows_UpdateAndRender(shadows_test* Test, game_input* Input, d3d12_context* Context, f32 TimeStep, f32 TimeSinceStart)
+internal void D3D12Shadows_UpdateAndRender(d3d12_shadows_test* Test, game_input* Input, d3d12_context* Context, f32 TimeStep, f32 TimeSinceStart)
 {
 	// Update game
-	Shadows_Update(Test, Input, Context, TimeStep, TimeSinceStart);
+	D3D12Shadows_Update(Test, Input, Context, TimeStep, TimeSinceStart);
 
 	// Get current frame stuff
 	auto CommandList = Context->DirectCommandList;

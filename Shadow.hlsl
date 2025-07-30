@@ -2,7 +2,7 @@
 
 cbuffer root_constants : register(b0)
 {
-    row_major float4x4 LightSpaceMatrix;
+    float4x4 c_LightSpaceMatrix;
 };
 
 struct vertex_shader_input
@@ -21,7 +21,7 @@ pixel_shader_input VSMain(vertex_shader_input In)
 {
     pixel_shader_input Out;
     
-    Out.Position = mul(LightSpaceMatrix, In.VertexPosition);
+    Out.Position = mul(c_LightSpaceMatrix, In.VertexPosition);
 
     return Out;
 }

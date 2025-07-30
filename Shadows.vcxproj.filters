@@ -18,7 +18,10 @@
     <ClCompile Include="Win32_Shadows.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Shadows.cpp">
+    <ClCompile Include="D3D12_Shadows.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="OpenGL_Shadows.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -35,13 +38,19 @@
     <ClInclude Include="Math\BKM_Types.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Shadows.h">
+    <ClInclude Include="D3D12_Shadows.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="D3D12_Context.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="D3D12_Buffers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="OpenGL_Shadows.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Shadows.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

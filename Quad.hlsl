@@ -33,7 +33,7 @@ pixel_shader_input VSMain(vertex_shader_input In)
     Out.Color = In.Color;
     Out.Normal = In.Normal;
     Out.ViewPosition = mul(c_ViewMatrix, Out.WorldPosition).xyz;
-    Out.PositionInLightSpace = mul(c_LightSpaceMatrix, float4(Out.WorldPosition.xyz, 1.0f)); // SHADOWS
+    Out.PositionInLightSpace = mul(c_LightSpaceMatrix, float4(Out.WorldPosition)); // SHADOWS
     
     return Out;
 }
@@ -77,8 +77,9 @@ float ShadowCalculation(float4 ShadowPos, directional_light Light, float3 Normal
     float ClosestDepth = g_ShadowMap.Sample(g_ShadowMapSampler, ShadowPos.xy).r;
     
     //float Bias = 0.005;
-    float3 LightDir = normalize(-Light.Direction);
-    float Bias = max(0.05 * (1.0 - dot(Normal, LightDir)), 0.005);
+    //float3 LightDir = normalize(-Light.Direction);
+    //float Bias = max(0.05 * (1.0 - dot(Normal, LightDir)), 0.005);
+    float Bias = 0.000;
     Shadow = CurrentDepth - Bias > ClosestDepth ? 1.0 : 0.0;
     
     // check whether current frag pos is in shadow
