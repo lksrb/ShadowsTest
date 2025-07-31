@@ -1,5 +1,10 @@
 #pragma once
 
+#define FIF 2
+inline constexpr u32 c_MaxQuads = 1024;
+inline constexpr u32 c_MaxQuadVertices = c_MaxQuads * 4;
+inline constexpr u32 c_MaxQuadIndices = c_MaxQuads * 6;
+
 struct quad_vertex
 {
 	v4 Position;

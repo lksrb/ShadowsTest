@@ -1,2 +1,46 @@
 ﻿  Win32_Shadows.cpp
-  Shadows.vcxproj -> C:\dev\cpp\Shadows\x64\Debug\Shadows.exe
+c:\dev\cpp\Shadows\OpenGL_Shadows.cpp(42,4): error C3861: 'glCreateBuffers': identifier not found
+  (compiling source file 'Win32_Shadows.cpp')
+  
+c:\dev\cpp\Shadows\OpenGL_Shadows.cpp(74,15): error C2065: 'GL_MODELVIEW': undeclared identifier
+  (compiling source file 'Win32_Shadows.cpp')
+  
+c:\dev\cpp\Shadows\OpenGL_Shadows.cpp(74,2): error C3861: 'glMatrixMode': identifier not found
+  (compiling source file 'Win32_Shadows.cpp')
+  
+c:\dev\cpp\Shadows\OpenGL_Shadows.cpp(75,2): error C3861: 'glLoadIdentity': identifier not found
+  (compiling source file 'Win32_Shadows.cpp')
+  
+c:\dev\cpp\Shadows\OpenGL_Shadows.cpp(77,15): error C2065: 'GL_PROJECTION': undeclared identifier
+  (compiling source file 'Win32_Shadows.cpp')
+  
+c:\dev\cpp\Shadows\OpenGL_Shadows.cpp(77,2): error C3861: 'glMatrixMode': identifier not found
+  (compiling source file 'Win32_Shadows.cpp')
+  
+c:\dev\cpp\Shadows\OpenGL_Shadows.cpp(78,2): error C3861: 'glLoadIdentity': identifier not found
+  (compiling source file 'Win32_Shadows.cpp')
+  
+c:\dev\cpp\Shadows\OpenGL_Shadows.cpp(83,2): error C3861: 'glBegin': identifier not found
+  (compiling source file 'Win32_Shadows.cpp')
+  
+c:\dev\cpp\Shadows\OpenGL_Shadows.cpp(86,2): error C3861: 'glVertex2f': identifier not found
+  (compiling source file 'Win32_Shadows.cpp')
+  
+c:\dev\cpp\Shadows\OpenGL_Shadows.cpp(87,2): error C3861: 'glVertex2f': identifier not found
+  (compiling source file 'Win32_Shadows.cpp')
+  
+c:\dev\cpp\Shadows\OpenGL_Shadows.cpp(88,2): error C3861: 'glVertex2f': identifier not found
+  (compiling source file 'Win32_Shadows.cpp')
+  
+c:\dev\cpp\Shadows\OpenGL_Shadows.cpp(90,2): error C3861: 'glVertex2f': identifier not found
+  (compiling source file 'Win32_Shadows.cpp')
+  
+c:\dev\cpp\Shadows\OpenGL_Shadows.cpp(91,2): error C3861: 'glVertex2f': identifier not found
+  (compiling source file 'Win32_Shadows.cpp')
+  
+c:\dev\cpp\Shadows\OpenGL_Shadows.cpp(92,2): error C3861: 'glVertex2f': identifier not found
+  (compiling source file 'Win32_Shadows.cpp')
+  
+c:\dev\cpp\Shadows\OpenGL_Shadows.cpp(93,2): error C3861: 'glEnd': identifier not found
+  (compiling source file 'Win32_Shadows.cpp')
+  
