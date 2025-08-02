@@ -1,11 +1,25 @@
 #include "OpenGL_Shadows.h"
 
-#include <glad/glad.h>
+#define GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB					0x8242
+
+#define WGL_CONTEXT_MAJOR_VERSION_ARB					0x2091
+#define WGL_CONTEXT_MINOR_VERSION_ARB					0x2092
+#define WGL_CONTEXT_LAYER_PLANE_ARB						0x2093
+#define WGL_CONTEXT_FLAGS_ARB							0x2094
+#define WGL_CONTEXT_PROFILE_MASK_ARB					0x9126
+
+#define WGL_CONTEXT_DEBUG_BIT_ARB						0x0001
+#define WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB			0x0002
+
+#define WGL_CONTEXT_CORE_PROFILE_BIT_ARB				0x0000001
+#define WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB		0x0000002
+
+typedef HGLRC WINAPI FP_wglCreateContextAttribsARB(HDC hdc, HGLRC ShareContext, const int* attribList);
 
 internal void OpenGL_Shadows_Initialize(opengl_shadows_test* Test, const game_window& Window)
 {
 	// Create opengl context to this thread
-	Test->WindowDC = GetDC(Window.Handle);
+	HDC WindowDC = GetDC(Window.Handle);
 
 	PIXELFORMATDESCRIPTOR DesiredPixelFormat = {};
 	DesiredPixelFormat.nSize = sizeof(PIXELFORMATDESCRIPTOR);
@@ -15,22 +29,62 @@ internal void OpenGL_Shadows_Initialize(opengl_shadows_test* Test, const game_wi
 	DesiredPixelFormat.cColorBits = 32;
 	DesiredPixelFormat.cAlphaBits = 8;
 	DesiredPixelFormat.iLayerType = PFD_MAIN_PLANE;
-	i32 SuggestedPixelFormatIndex = ChoosePixelFormat(Test->WindowDC, &DesiredPixelFormat);
+	i32 SuggestedPixelFormatIndex = ChoosePixelFormat(WindowDC, &DesiredPixelFormat);
 
 	PIXELFORMATDESCRIPTOR SuggestPixelFormat = {};
-	DescribePixelFormat(Test->WindowDC, SuggestedPixelFormatIndex, sizeof(SuggestPixelFormat), &SuggestPixelFormat);
-	SetPixelFormat(Test->WindowDC, SuggestedPixelFormatIndex, &SuggestPixelFormat);
+	DescribePixelFormat(WindowDC, SuggestedPixelFormatIndex, sizeof(SuggestPixelFormat), &SuggestPixelFormat);
+	SetPixelFormat(WindowDC, SuggestedPixelFormatIndex, &SuggestPixelFormat);
 
 	// Create context
-	Test->OpenGLRC = wglCreateContext(Test->WindowDC);
-	Assert(wglMakeCurrent(Test->WindowDC, Test->OpenGLRC), "Error creating opengl context");
+	HGLRC LegacyOpenGLRC = wglCreateContext(WindowDC);
+	Assert(wglMakeCurrent(WindowDC, LegacyOpenGLRC), "Error creating legacy opengl context");
+
+	// Load additional stuff
+	{
+		FP_wglCreateContextAttribsARB* wglCreateContextAttribsARB = (FP_wglCreateContextAttribsARB*)wglGetProcAddress("wglCreateContextAttribsARB");
+		HGLRC ShareContext = 0;
+		int Attribs[] = {
+			WGL_CONTEXT_MAJOR_VERSION_ARB, 4,
+			WGL_CONTEXT_MINOR_VERSION_ARB, 6,
+			WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB | WGL_CONTEXT_DEBUG_BIT_ARB,
+			WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB,
+			0
+		};
+		HGLRC ModernContext = wglCreateContextAttribsARB(WindowDC, ShareContext, Attribs);
+		Assert(ModernContext, "Failed to initialize modern opengl context!");
+		wglMakeCurrent(WindowDC, ModernContext);
+		wglDeleteContext(LegacyOpenGLRC);
+	}
+
+	// Load modern OpenGL stuff
+	Assert(gladLoadGL(), "Failed to load OpenGL 4.6!");
+	bool DebugOpenGL = true;
+	if (DebugOpenGL)
+	{
+		int ContextFlags = 0;
+		glGetIntegerv(GL_CONTEXT_FLAGS, &ContextFlags);
+		if (ContextFlags & GL_CONTEXT_FLAG_DEBUG_BIT)
+		{
+			glEnable(GL_DEBUG_OUTPUT);
+			glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+			glDebugMessageCallback(OpenGLDebugCallback, nullptr);
+			glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE); // Enable all messages
+		}
+
+		if (GLAD_GL_KHR_debug) {
+			// Set up debug callback
+
+			int k = 0;
+		}
+	}
+
+	// Initialize rendering
 	OpenGL_Shadows_InitializePipeline(Test, Window);
 }
 
 internal void OpenGL_Shadows_InitializePipeline(opengl_shadows_test* Test, const game_window& Window)
 {
 	auto& Quad = Test->Quad;
-
 	{
 		// Vertex buffers and index buffers
 		{
@@ -62,8 +116,14 @@ internal void OpenGL_Shadows_InitializePipeline(opengl_shadows_test* Test, const
 
 					Offset += 4;
 				}
-				//Test->Quad.IndexBuffer = DX12IndexBufferCreate(Device, Context->DirectCommandAllocators[0], Context->DirectCommandList, Context->DirectCommandQueue, QuadIndices, c_MaxQuadIndices);
+
+				OpenGL_IndexBuffer_Create(&Quad.IndexBuffer, QuadIndices, c_MaxQuadIndices);
 			}
+		}
+
+
+		{
+
 		}
 	}
 }
@@ -71,26 +131,6 @@ internal void OpenGL_Shadows_InitializePipeline(opengl_shadows_test* Test, const
 internal void OpenGL_Shadows_UpdateAndRender(opengl_shadows_test* Test, u32 Width, u32 Height)
 {
 	glViewport(0, 0, Width, Height);
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-
 	glClearColor(1.0f, 0, 1.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
-
-	glBegin(GL_TRIANGLES);
-	f32 P = 0.9f;
-
-	glVertex2f(-P, -P);
-	glVertex2f(P, -P);
-	glVertex2f(P, P);
-
-	glVertex2f(-P, -P);
-	glVertex2f(P, P);
-	glVertex2f(-P, P);
-	glEnd();
-
-	SwapBuffers(Test->WindowDC);
 }

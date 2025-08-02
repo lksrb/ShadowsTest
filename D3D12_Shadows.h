@@ -1,7 +1,9 @@
 #pragma once
 
-#include "D3D12_Buffers.h"
 #include "Shadows.h"
+#include "D3D12_Buffers.h"
+
+#include <vector>
 
 struct d3d12_shadows_test
 {
@@ -35,137 +37,6 @@ struct d3d12_shadows_test
 		shadow_pass_root_signature_constant_buffer RootSignatureBuffer;
 	} ShadowPass;
 };
-
-internal constexpr v4 c_QuadVertexPositions[4]
-{
-	{ -0.5f, -0.5f, 0.0f, 1.0f },
-	{  0.5f, -0.5f, 0.0f, 1.0f },
-	{  0.5f,  0.5f, 0.0f, 1.0f },
-	{ -0.5f,  0.5f, 0.0f, 1.0f }
-};
-
-// Each face has to have a normal vector, so unfortunately we cannot encode Cuboid as 8 vertices
-internal constexpr v4 c_CuboidVerticesPositions[24] =
-{
-	// Front face (-Z)
-	{  0.5f, -0.5f, -0.5f, 1.0f },
-	{ -0.5f, -0.5f, -0.5f, 1.0f },
-	{ -0.5f,  0.5f, -0.5f, 1.0f },
-	{  0.5f,  0.5f, -0.5f, 1.0f },
-
-	// Back face (+Z)
-	{ -0.5f, -0.5f,  0.5f, 1.0f },
-	{  0.5f, -0.5f,  0.5f, 1.0f },
-	{  0.5f,  0.5f,  0.5f, 1.0f },
-	{ -0.5f,  0.5f,  0.5f, 1.0f },
-
-	// Left face (-X)
-	{ -0.5f, -0.5f, -0.5f, 1.0f },
-	{ -0.5f, -0.5f,  0.5f, 1.0f },
-	{ -0.5f,  0.5f,  0.5f, 1.0f },
-	{ -0.5f,  0.5f, -0.5f, 1.0f },
-
-	// Right face (+X)
-	{  0.5f, -0.5f,  0.5f, 1.0f },
-	{  0.5f, -0.5f, -0.5f, 1.0f },
-	{  0.5f,  0.5f, -0.5f, 1.0f },
-	{  0.5f,  0.5f,  0.5f, 1.0f },
-
-	// Top face (+Y)
-	{ -0.5f,  0.5f,  0.5f, 1.0f },
-	{  0.5f,  0.5f,  0.5f, 1.0f },
-	{  0.5f,  0.5f, -0.5f, 1.0f },
-	{ -0.5f,  0.5f, -0.5f, 1.0f },
-
-	// Bottom face (-Y)
-	{ -0.5f, -0.5f, -0.5f, 1.0f },
-	{  0.5f, -0.5f, -0.5f, 1.0f },
-	{  0.5f, -0.5f,  0.5f, 1.0f },
-	{ -0.5f, -0.5f,  0.5f, 1.0f }
-};
-
-internal constexpr v4 c_CuboidVerticesColor[24] =
-{
-	// Front face (-Z)
-	{ 0.0f, 1.0f, 0.0f, 1.0f },
-	{ 0.0f, 1.0f, 0.0f, 1.0f },
-	{ 0.0f, 1.0f, 0.0f, 1.0f },
-	{ 0.0f, 1.0f, 0.0f, 1.0f },
-
-	// Back face (+Z)
-	{ 1.0f, 0.0f, 0.0f, 1.0f },
-	{ 1.0f, 0.0f, 0.0f, 1.0f },
-	{ 1.0f, 0.0f, 0.0f, 1.0f },
-	{ 1.0f, 0.0f, 0.0f, 1.0f },
-
-	// Left face (-X)
-	{ 0.0f, 0.0f, 1.0f, 1.0f },
-	{ 0.0f, 0.0f, 1.0f, 1.0f },
-	{ 0.0f, 0.0f, 1.0f, 1.0f },
-	{ 0.0f, 0.0f, 1.0f, 1.0f },
-
-	// Right face (+X)
-	{ 0.0f, 1.0f, 1.0f, 1.0f },
-	{ 0.0f, 1.0f, 1.0f, 1.0f },
-	{ 0.0f, 1.0f, 1.0f, 1.0f },
-	{ 0.0f, 1.0f, 1.0f, 1.0f },
-
-	// Top face (+Y)
-	{ 1.0f, 1.0f, 0.0f, 1.0f },
-	{ 1.0f, 1.0f, 0.0f, 1.0f },
-	{ 1.0f, 1.0f, 0.0f, 1.0f },
-	{ 1.0f, 1.0f, 0.0f, 1.0f },
-
-	// Bottom face (-Y)
-	{ 1.0f, 0.0f, 1.0f, 1.0f },
-	{ 1.0f, 0.0f, 1.0f, 1.0f },
-	{ 1.0f, 0.0f, 1.0f, 1.0f },
-	{ 1.0f, 0.0f, 1.0f, 1.0f }
-};
-
-internal constexpr v3 c_CuboidVerticesNormals[24] =
-{
-	// Front face (-Z)
-	v3{ 0.0f, 0.0f, -1.0f},
-	v3{ 0.0f, 0.0f, -1.0f},
-	v3{ 0.0f, 0.0f, -1.0f},
-	v3{ 0.0f, 0.0f, -1.0f},
-
-	// Back face (+Z)                                                                    
-	v3{ 0.0f, 0.0f, 1.0f },
-	v3{ 0.0f, 0.0f, 1.0f },
-	v3{ 0.0f, 0.0f, 1.0f },
-	v3{ 0.0f, 0.0f, 1.0f },
-
-	// Left face (-X)                                                                    
-	v3{ -1.0f, 0.0f, 0.0f},
-	v3{ -1.0f, 0.0f, 0.0f},
-	v3{ -1.0f, 0.0f, 0.0f},
-	v3{ -1.0f, 0.0f, 0.0f},
-
-	// Right face (+X)                                                                   
-	v3{ 1.0f, 0.0f, 0.0f },
-	v3{ 1.0f, 0.0f, 0.0f },
-	v3{ 1.0f, 0.0f, 0.0f },
-	v3{ 1.0f, 0.0f, 0.0f },
-
-	// Top face (+Y)                                                                     
-	v3{ 0.0f, 1.0f, 0.0f },
-	v3{ 0.0f, 1.0f, 0.0f },
-	v3{ 0.0f, 1.0f, 0.0f },
-	v3{ 0.0f, 1.0f, 0.0f },
-
-	// Bottom face (-Y)                                                                  
-  v3{ 0.0f, -1.0f, 0.0f},
-  v3{ 0.0f, -1.0f, 0.0f},
-  v3{ 0.0f, -1.0f, 0.0f},
-  v3{ 0.0f, -1.0f, 0.0f}
-};
-
-
-inline constexpr u32 c_MaxQuads = 1024;
-inline constexpr u32 c_MaxQuadVertices = c_MaxQuads * 4;
-inline constexpr u32 c_MaxQuadIndices = c_MaxQuads * 6;
 
 // Helpers
 D3D12_SHADER_BYTECODE CompileVertexShader(const wchar_t* Path)
@@ -292,4 +163,29 @@ D3D12_SHADER_BYTECODE CompileFragmentShader(const wchar_t* Path)
 	}
 
 	return { PixelShader->GetBufferPointer(), PixelShader->GetBufferSize() };
+}
+
+internal std::vector<glm::vec4> getFrustumCornersWorldSpace(const glm::mat4& proj, const glm::mat4& view)
+{
+	const auto inv = glm::inverse(proj * view);
+
+	std::vector<glm::vec4> frustumCorners;
+	for (unsigned int x = 0; x < 2; ++x)
+	{
+		for (unsigned int y = 0; y < 2; ++y)
+		{
+			for (unsigned int z = 0; z < 2; ++z)
+			{
+				const glm::vec4 pt =
+					inv * glm::vec4(
+						2.0f * x - 1.0f,
+						2.0f * y - 1.0f,
+						2.0f * z - 1.0f,
+						1.0f);
+				frustumCorners.push_back(pt / pt.w);
+			}
+		}
+	}
+
+	return frustumCorners;
 }

@@ -2,6 +2,10 @@
 
 #include <vector>
 
+#define SHADOW_MAP_SIZE 1024
+
+
+
 internal void D3D12Shadows_Initialize(d3d12_shadows_test* Test, d3d12_context* Context)
 {
 	auto Device = Context->Device;
@@ -83,8 +87,8 @@ internal void D3D12Shadows_Initialize(d3d12_shadows_test* Test, d3d12_context* C
 			// Rasterizer state
 			PipelineDesc.RasterizerState = {};
 			PipelineDesc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
-			PipelineDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
-			PipelineDesc.RasterizerState.FrontCounterClockwise = true;
+			PipelineDesc.RasterizerState.CullMode = D3D12_CULL_MODE_BACK;
+			PipelineDesc.RasterizerState.FrontCounterClockwise = false;
 			PipelineDesc.RasterizerState.DepthBias = D3D12_DEFAULT_DEPTH_BIAS;
 			PipelineDesc.RasterizerState.DepthBiasClamp = D3D12_DEFAULT_DEPTH_BIAS_CLAMP;
 			PipelineDesc.RasterizerState.SlopeScaledDepthBias = D3D12_DEFAULT_SLOPE_SCALED_DEPTH_BIAS;
@@ -213,7 +217,7 @@ internal void D3D12Shadows_Initialize(d3d12_shadows_test* Test, d3d12_context* C
 			// Rasterizer state
 			PipelineDesc.RasterizerState = {};
 			PipelineDesc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
-			PipelineDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
+			PipelineDesc.RasterizerState.CullMode = D3D12_CULL_MODE_FRONT;
 			PipelineDesc.RasterizerState.FrontCounterClockwise = TRUE;
 			PipelineDesc.RasterizerState.DepthBias = D3D12_DEFAULT_DEPTH_BIAS;
 			PipelineDesc.RasterizerState.DepthBiasClamp = D3D12_DEFAULT_DEPTH_BIAS_CLAMP;
@@ -234,7 +238,7 @@ internal void D3D12Shadows_Initialize(d3d12_shadows_test* Test, d3d12_context* C
 			PipelineDesc.InputLayout = { InputElementDescs, CountOf(InputElementDescs) };
 			PipelineDesc.pRootSignature = Test->ShadowPass.RootSignature;
 			PipelineDesc.VS = CompileVertexShader(ShaderPath);
-			PipelineDesc.PS = CompileFragmentShader(ShaderPath);
+			PipelineDesc.PS = {}; // No need for shadow pass
 			PipelineDesc.SampleMask = UINT_MAX;
 			PipelineDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 			PipelineDesc.NumRenderTargets = 0;
@@ -278,8 +282,8 @@ internal void D3D12Shadows_Initialize(d3d12_shadows_test* Test, d3d12_context* C
 
 				D3D12_RESOURCE_DESC DepthStencilDesc = {};
 				DepthStencilDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-				DepthStencilDesc.Width = 1024;
-				DepthStencilDesc.Height = 1024;
+				DepthStencilDesc.Width = SHADOW_MAP_SIZE;
+				DepthStencilDesc.Height = SHADOW_MAP_SIZE;
 				DepthStencilDesc.DepthOrArraySize = 1;
 				DepthStencilDesc.MipLevels = 1;
 				DepthStencilDesc.Format = DXGI_FORMAT_D32_FLOAT;
@@ -344,6 +348,21 @@ internal void D3D12Shadows_Initialize(d3d12_shadows_test* Test, d3d12_context* C
 	}
 }
 
+internal void D3D12PushCube(d3d12_shadows_test* Shadows, const m4 Transform)
+{
+	Assert(Shadows->Quad.IndexCount < c_MaxQuadIndices, "Shadows->QuadIndexCount < c_MaxQuadIndices");
+
+	for (u32 i = 0; i < CountOf(c_CuboidVerticesPositions); i++)
+	{
+		Shadows->Quad.VertexDataPtr->Position = Transform * c_CuboidVerticesPositions[i];
+		Shadows->Quad.VertexDataPtr->Color = c_CuboidVerticesColor[i];
+		Shadows->Quad.VertexDataPtr->Normal = m3(glm::transpose(glm::inverse(Transform))) * c_CuboidNormals[i];
+		Shadows->Quad.VertexDataPtr++;
+	}
+
+	Shadows->Quad.IndexCount += 36;
+}
+
 internal void D3D12PushCube(d3d12_shadows_test* Shadows, const v3& Translation, const v3& Rotation, const v3& Scale)
 {
 	Assert(Shadows->Quad.IndexCount < c_MaxQuadIndices, "Shadows->QuadIndexCount < c_MaxQuadIndices");
@@ -352,15 +371,7 @@ internal void D3D12PushCube(d3d12_shadows_test* Shadows, const v3& Translation, 
 		* glm::toMat4(qtn(Rotation))
 		* glm::scale(m4(1.0f), Scale);
 
-	for (u32 i = 0; i < CountOf(c_CuboidVerticesPositions); i++)
-	{
-		Shadows->Quad.VertexDataPtr->Position = Transform * c_CuboidVerticesPositions[i];
-		Shadows->Quad.VertexDataPtr->Color = c_CuboidVerticesColor[i];
-		Shadows->Quad.VertexDataPtr->Normal = m3(glm::transpose(glm::inverse(Transform))) * c_CuboidVerticesNormals[i];
-		Shadows->Quad.VertexDataPtr++;
-	}
-
-	Shadows->Quad.IndexCount += 36;
+	D3D12PushCube(Shadows, Transform);
 }
 
 internal void D3D12PushDirectionalLight(d3d12_shadows_test* Shadows, const v3& Direction, f32 Intensity, const v3& Radiance)
@@ -459,11 +470,11 @@ internal void D3D12CameraMovement(game_input* Input, v3* CameraPosition, v3* Cam
 			JumpKeyPressed = true;
 		}
 
-		if (Input->IsKeyDown(key::Q) || Input->IsKeyDown(key::BackSpace) || Input->IsKeyDown(key::Space))
+		if (Input->IsKeyDown(key::BackSpace) || Input->IsKeyDown(key::Space))
 		{
 			Direction += v3(0.0f, 1.0f, 0.0f);
 		}
-		else if (Input->IsKeyDown(key::E) || Input->IsKeyDown(key::Control) || Input->IsKeyDown(key::Shift))
+		else if (Input->IsKeyDown(key::Control) || Input->IsKeyDown(key::Shift))
 		{
 			Direction -= v3(0.0f, 1.0f, 0.0f);
 		}
@@ -481,23 +492,79 @@ internal void D3D12Shadows_Update(d3d12_shadows_test* Test, game_input* Input, d
 	local_persist v3 CameraPosition(0, 6, -10);
 	local_persist v3 CameraRotation(glm::pi<f32>() / 4, 0, 0);
 	local_persist v3 CameraForward;
-	local_persist v3 Eye = v3(-2.0f, 3.0f, -1.0f);
-
-	//Eye.x += TimeStep;
+	local_persist v3 Eye = v3(-2.0f, 3.0f, 0.0f);
+	m4 LightSpaceMatrix(1.0f);
 
 	// Camera
 	{
 		D3D12CameraMovement(Input, &CameraPosition, &CameraRotation, &CameraForward, TimeStep);
 
-		m4 LightSpaceMatrix(1.0f);
 
 		// Shadows
 		{
-			f32 Size = 15;
-			m4 LightSpaceProjection = glm::orthoLH_ZO(-Size, Size, -Size, Size, 1.0f, 17.5f);
+			local_persist f32 Size = 15;
+			local_persist f32 Near = 1.0f;
+			local_persist f32 Far = 7.5;
+			m4 LightSpaceProjection = glm::orthoLH_ZO(-Size, Size, -Size, Size, Near, Far);
 			m4 LightSpaceView = glm::lookAtLH(Eye, v3(0, 0, 0), v3(0, 1, 0));
 
 			LightSpaceMatrix = LightSpaceProjection * LightSpaceView;
+
+			if (Input->IsKeyPressed(key::Q))
+			{
+				Size++;
+				printf("Current Size: %.3f\n", Size);
+			}
+
+			if (Input->IsKeyPressed(key::E))
+			{
+				Size--;
+				printf("Current Size: %.3f\n", Size);
+			}
+
+			// Near
+			if (Input->IsKeyPressed(key::F))
+			{
+				Near += 0.5f;
+				printf("Current Near: %.3f\n", Near);
+			}
+			if (Input->IsKeyPressed(key::H))
+			{
+				Near -= 0.5f;
+				printf("Current Near: %.3f\n", Near);
+			}
+
+			// Far
+			if (Input->IsKeyPressed(key::N))
+			{
+				Far += 0.5f;
+				printf("Current Far: %.3f\n", Far);
+			}
+			if (Input->IsKeyPressed(key::M))
+			{
+				Far -= 0.5f;
+				printf("Current Far: %.3f\n", Far);
+			}
+
+			if (Input->IsKeyDown(key::Up))
+			{
+				Eye.y += TimeStep;
+			}
+
+			if (Input->IsKeyDown(key::Down))
+			{
+				Eye.y -= TimeStep;
+			}
+
+			if (Input->IsKeyDown(key::Left))
+			{
+				Eye.x -= TimeStep;
+			}
+
+			if (Input->IsKeyDown(key::Right))
+			{
+				Eye.x += TimeStep;
+			}
 		}
 
 		//CameraPosition.x = 6 * bkm::Sin(TimeSinceStart);
@@ -537,12 +604,14 @@ internal void D3D12Shadows_Update(d3d12_shadows_test* Test, game_input* Input, d
 
 	// Directional light debug
 	{
+		//D3D12PushCube(Test, LightSpaceMatrix);
 		D3D12PushCube(Test, Eye, v3(0, 0, 0), v3(0.5f, 0.5f, 0.5f));
+		D3D12PushCube(Test, CameraPosition, v3(0, 0, 0), v3(0.5f, 0.5f, 0.5f));
 	}
 
 	// CUBE
 	D3D12PushCube(Test, v3(0, 5, 0), v3(0, TimeSinceStart, 0), v3(1.0f, 1.0f, 1.0f));
-	D3D12PushCube(Test, v3(3, 5, 0), v3(0, TimeSinceStart, 0), v3(1.0f, 1.0f, 1.0f));
+	//D3D12PushCube(Test, v3(3, 5, 0), v3(0, TimeSinceStart, 0), v3(1.0f, 1.0f, 1.0f));
 
 	for (size_t i = 0; i < Blocks.size(); i++)
 	{
@@ -596,8 +665,8 @@ internal void D3D12Shadows_UpdateAndRender(d3d12_shadows_test* Test, game_input*
 
 		// From resource to depth write
 		DX12CmdTransition(CommandList, ShadowMap, D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_RESOURCE_STATE_DEPTH_WRITE);
-		DX12CmdSetViewport(CommandList, 0, 0, 1024.0f, 1024.0f);
-		DX12CmdSetScissorRect(CommandList, 0, 0, 1024, 1024);
+		DX12CmdSetViewport(CommandList, 0, 0, SHADOW_MAP_SIZE, SHADOW_MAP_SIZE);
+		DX12CmdSetScissorRect(CommandList, 0, 0, SHADOW_MAP_SIZE, SHADOW_MAP_SIZE);
 
 		auto ShadowPassDSV = ShadowPass.DSVHandles[CurrentBackBufferIndex];
 		CommandList->ClearDepthStencilView(ShadowPassDSV, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);

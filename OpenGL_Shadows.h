@@ -2,20 +2,16 @@
 
 #include "Shadows.h"
 
-// Using OpenGL 3.3
-#include <glad/glad.h>
-#include <../src/glad.c>
+#include "OpenGL.h"
 
 struct opengl_shadows_test
 {
-	HDC WindowDC;
-	HGLRC OpenGLRC;
-
 	struct
 	{
 		u32 VertexArrayHandle;
 		u32 VertexBufferHandle;
-		u32 IndexBufferHandle;
+
+		opengl_index_buffer IndexBuffer;
 		quad_vertex* VertexDataBase;
 		quad_vertex* VertexDataPtr;
 		u32 IndexCount;

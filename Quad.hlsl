@@ -60,13 +60,6 @@ float ShadowCalculation(float4 ShadowPos, directional_light Light, float3 Normal
     // transform to [0,1] range
     ShadowPos = ShadowPos * 0.5 + 0.5;
     
-    if (ShadowPos.x < 0 || ShadowPos.x > 1 ||
-    ShadowPos.y < 0 || ShadowPos.y > 1 ||
-    ShadowPos.z < 0 || ShadowPos.z > 1)
-    {
-        return 0.0; // Not in shadow map
-    }
-    
     // get depth of current fragment from light's perspective
     float CurrentDepth = ShadowPos.z;
     
@@ -74,13 +67,13 @@ float ShadowCalculation(float4 ShadowPos, directional_light Light, float3 Normal
         return 0.0;
     
     // get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
-    float ClosestDepth = g_ShadowMap.Sample(g_ShadowMapSampler, ShadowPos.xy).r;
+    float ClosestDepth = g_ShadowMap.Sample(g_ShadowMapSampler, ShadowPos.xy);
     
     //float Bias = 0.005;
-    //float3 LightDir = normalize(-Light.Direction);
-    //float Bias = max(0.05 * (1.0 - dot(Normal, LightDir)), 0.005);
-    float Bias = 0.000;
-    Shadow = CurrentDepth - Bias > ClosestDepth ? 1.0 : 0.0;
+    float3 LightDir = normalize(-Light.Direction);
+    float Bias = max(0.05 * (1.0 - dot(Normal, LightDir)), 0.005);
+    //float Bias = 0.02;
+    Shadow = CurrentDepth > ClosestDepth ? 1.0 : 0.0;
     
     // check whether current frag pos is in shadow
     //Shadow = CurrentDepth > ClosestDepth ? 1.0 : 0.0;
@@ -135,14 +128,16 @@ float4 PSMain(pixel_shader_input In) : SV_TARGET
     
     for (int i = 0; i < u_DirectionalLightCount; i++)
     {
-        Result += CalculateDirectionalLight2(u_DirectionalLights[i], Normal, ViewDir, Shininess, In.Color.rgb, ShadowValue);
+        //Result += CalculateDirectionalLight2(u_DirectionalLights[i], Normal, ViewDir, Shininess, In.Color.rgb, ShadowValue);
     }
     
     // Phase 2: Point lights
     for (int j = 0; j < u_PointLightCount; j++)
     {
-        Result += CalculatePointLight(u_PointLights[j], Normal, ViewDir, Shininess, In.WorldPosition.xyz, In.Color.rgb);
+        //Result += CalculatePointLight(u_PointLights[j], Normal, ViewDir, Shininess, In.WorldPosition.xyz, In.Color.rgb);
     }
+    
+    Result = float4(In.Color.rgb * (1.0 - ShadowValue), 1.0f);
     
     //return float4(projCoords, 1.0);
     return float4(Result, 1.0);

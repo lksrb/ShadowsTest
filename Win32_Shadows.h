@@ -147,7 +147,7 @@ struct game_window
 
 enum class key : u32
 {
-	W = 0, S, A, D, Q, E, T, G, Shift, Control, BackSpace, Space, COUNT
+	W = 0, S, A, D, Q, E, T, G, F, H, N, M, Up, Down, Left, Right, Shift, Control, BackSpace, Space, COUNT
 };
 
 enum class mouse : u32
@@ -397,6 +397,10 @@ internal void Win32ProcessEvents(game_input* Input, const game_window& Window)
 				case 'Q': { Input->SetKeyState(key::Q, IsDown); break; }
 				case 'E': { Input->SetKeyState(key::E, IsDown); break; }
 				case 'G': { Input->SetKeyState(key::G, IsDown); break; }
+				case 'F': { Input->SetKeyState(key::F, IsDown); break; }
+				case 'H': { Input->SetKeyState(key::H, IsDown); break; }
+				case 'N': { Input->SetKeyState(key::N, IsDown); break; }
+				case 'M': { Input->SetKeyState(key::M, IsDown); break; }
 				case 'T':
 				{
 					Input->SetKeyState(key::T, IsDown);
@@ -412,6 +416,10 @@ internal void Win32ProcessEvents(game_input* Input, const game_window& Window)
 					}
 					break;
 				}
+				case VK_UP: { Input->SetKeyState(key::Up, IsDown); break; }
+				case VK_DOWN: { Input->SetKeyState(key::Down, IsDown); break; }
+				case VK_LEFT: { Input->SetKeyState(key::Left, IsDown); break; }
+				case VK_RIGHT: { Input->SetKeyState(key::Right, IsDown); break; }
 				case VK_CONTROL: { Input->SetKeyState(key::Control, IsDown); break; }
 				case VK_SHIFT: { Input->SetKeyState(key::Shift, IsDown); break; }
 				case VK_SPACE: { Input->SetKeyState(key::Space, IsDown); break; }

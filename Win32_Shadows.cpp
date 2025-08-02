@@ -1,12 +1,12 @@
 #include "Win32_Shadows.h"
 
-//#include "D3D12_Context.h"
+#include "D3D12_Context.h"
 
-//#include "D3D12_Shadows.h"
-//#include "D3D12_Shadows.cpp"
+#include "D3D12_Shadows.h"
+#include "D3D12_Shadows.cpp"
 
-#include "OpenGL_Shadows.h"
-#include "OpenGL_Shadows.cpp"
+//#include "OpenGL_Shadows.h"
+//#include "OpenGL_Shadows.cpp"
 
 int main()
 {
@@ -47,14 +47,14 @@ int main()
 	g_IsRunning = true;
 	game_input Input = {};
 
-	//d3d12_context* D3D12Context = VmAllocArray(d3d12_context, 1);
-	//D3D12Context_Initialize(D3D12Context, Window);
-	//
-	//d3d12_shadows_test* Shadows = VmAllocArray(d3d12_shadows_test, 1);
-	//D3D12Shadows_Initialize(Shadows, D3D12Context);
+	d3d12_context* D3D12Context = VmAllocArray(d3d12_context, 1);
+	D3D12Context_Initialize(D3D12Context, Window);
+	
+	d3d12_shadows_test* Shadows = VmAllocArray(d3d12_shadows_test, 1);
+	D3D12Shadows_Initialize(Shadows, D3D12Context);
 
-	opengl_shadows_test* OpenGLShadows = VmAllocArray(opengl_shadows_test, 1);
-	OpenGL_Shadows_Initialize(OpenGLShadows, Window);
+	//opengl_shadows_test* OpenGLShadows = VmAllocArray(opengl_shadows_test, 1);
+	//OpenGL_Shadows_Initialize(OpenGLShadows, Window);
 
 	f32 TimeSinceStart = 0.0f;
 
@@ -77,14 +77,11 @@ int main()
 
 		if (!IsMinimized)
 		{
-			//D3D12Shadows_UpdateAndRender(Shadows, &Input, D3D12Context, TimeStep, TimeSinceStart);
-			//ScopedTimer timer("Game update");
-			//GameUpdate(&Game, &GameRenderer, &Input, TimeStep, g_ClientWidth, g_ClientHeight);
+			D3D12Shadows_UpdateAndRender(Shadows, &Input, D3D12Context, TimeStep, TimeSinceStart);
 
-			OpenGL_Shadows_UpdateAndRender(OpenGLShadows, Window.ClientAreaWidth, Window.ClientAreaHeight);
+			//OpenGL_Shadows_UpdateAndRender(OpenGLShadows, Window.ClientAreaWidth, Window.ClientAreaHeight);
+			//SwapBuffers(GetDC(Window.Handle));
 		}
-
-		// Render stuff
 
 		DWORD64 EndCycleCount = __rdtsc();
 

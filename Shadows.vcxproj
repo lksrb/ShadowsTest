@@ -150,6 +150,8 @@
     <ClInclude Include="Math\BKM_Operators.h" />
     <ClInclude Include="Math\BKM_Types.h" />
     <ClInclude Include="D3D12_Shadows.h" />
+    <ClInclude Include="OpenGL.h" />
+    <ClInclude Include="OpenGL_Buffers.h" />
     <ClInclude Include="OpenGL_Shadows.h" />
     <ClInclude Include="Shadows.h" />
     <ClInclude Include="Win32_Shadows.h" />

@@ -25,8 +25,3 @@ pixel_shader_input VSMain(vertex_shader_input In)
 
     return Out;
 }
-
-void PSMain(pixel_shader_input In)
-{
-
-}
